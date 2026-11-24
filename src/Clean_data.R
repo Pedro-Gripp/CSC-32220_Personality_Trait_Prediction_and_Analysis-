@@ -2,7 +2,7 @@ library(tidyverse)
 library(dplyr)
 library(tidymodels)
 
-test_data <- read_csv("test.csv")  
+test_data <- read_csv("Data/test.csv")  
 
 glimpse(test_data)  
 
@@ -36,7 +36,7 @@ sum(is.na(clean_test_data))
 
 
 
-train_data <- read_csv("train.csv")  
+train_data <- read_csv("Data/train.csv")  
 
 glimpse(train_data)  
 
@@ -67,3 +67,62 @@ clean_train_data <- train_data %>% mutate(
 
 
 sum(is.na(clean_train_data))
+
+
+# 2. Set Seed and Split Training Data for Validation 
+
+set.seed(42) 
+
+data_split <- initial_split(clean_train, prop = 0.8, strata = Personality) 
+
+train_set <- training(data_split) 
+
+valid_set <- testing(data_split) 
+
+
+
+# 3. Define Recipe & Model 
+
+personality_recipe <- recipe(Personality ~ Time_spent_Alone + Social_event_attendance +  
+                               
+                               Going_outside + Friends_circle_size + Post_frequency +  
+                               
+                               Stage_fear + Drained_after_socializing, data = train_set) %>%  
+  
+  step_normalize(all_numeric_predictors()) %>%  
+  
+  step_dummy(all_nominal_predictors(), -all_outcomes()) 
+
+
+
+lr_model <- logistic_reg() %>%  
+  
+  set_engine("glm") %>%  
+  
+  set_mode("classification") 
+
+
+
+# 4. Workflow & Fitting 
+
+personality_wf <- workflow() %>%  
+  
+  add_recipe(personality_recipe) %>%  
+  
+  add_model(lr_model) 
+
+
+
+fitted_model <- fit(personality_wf, data = train_set) 
+
+
+
+# 5. Evaluate on Validation Set 
+
+predictions <- predict(fitted_model, new_data = valid_set, type = "class") 
+
+results <- bind_cols(valid_set, predictions) 
+
+accuracy_val <- yardstick::accuracy(results, truth = Personality, estimate = .pred_class) 
+
+print(accuracy_val) 
