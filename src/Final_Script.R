@@ -69,3 +69,39 @@ print(lr_accuracy)
 # ==============================================================================
 # END MODELING LOGIC: LOGISTIC REGRESSION
 # ==============================================================================
+
+
+# ==============================================================================
+# START MODELING LOGIC: NAIVE BAYES
+# ==============================================================================
+
+library(discrim)
+library(naivebayes)
+
+
+nb_recipe <- recipe(
+  Personality ~ Time_spent_Alone + Social_event_attendance +
+    Going_outside + Friends_circle_size + Post_frequency +
+    Stage_fear + Drained_after_socializing,
+  data = train_set
+)
+
+nb_model <- naive_Bayes() %>%
+  set_engine("naivebayes") %>%
+  set_mode("classification")
+
+nb_wf <- workflow() %>%
+  add_recipe(nb_recipe) %>%
+  add_model(nb_model)
+
+nb_fit <- fit(nb_wf, data = train_set)
+
+nb_predictions <- predict(nb_fit, new_data = valid_set, type = "class")
+nb_results <- bind_cols(valid_set, nb_predictions)
+
+nb_accuracy <- yardstick::accuracy(nb_results, truth = Personality, estimate = .pred_class)
+print(nb_accuracy)
+
+# ==============================================================================
+# END MODELING LOGIC: NAIVE BAYES
+# ==============================================================================
