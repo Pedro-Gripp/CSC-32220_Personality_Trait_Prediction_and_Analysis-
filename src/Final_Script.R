@@ -3,40 +3,8 @@ library(dplyr)
 library(tidymodels)
 
 test_data <- read_csv("Data/test.csv")  
-
-glimpse(test_data)  
-
-colSums(is.na(test_data))  
-
-clean_test_data <- test_data %>% mutate(  
-  
-  Time_spent_Alone = replace_na(Time_spent_Alone, median(Time_spent_Alone, na.rm = TRUE)), 
-  
-  Social_event_attendance=replace_na(Social_event_attendance,median(Social_event_attendance, na.rm = TRUE)),  
-  
-  Going_outside = replace_na(Going_outside, median(Going_outside, na.rm = TRUE)), 
-  
-  Friends_circle_size = replace_na(Friends_circle_size, median(Friends_circle_size, na.rm = TRUE)),  
-  
-  Post_frequency = replace_na(Post_frequency, median(Post_frequency, na.rm = TRUE)), 
-  
-  
-  
-  Stage_fear = replace_na(Stage_fear, "No"), 
-  
-  Stage_fear = factor(Stage_fear, levels = c("No", "Yes")), 
-  
-  Drained_after_socializing = replace_na(Drained_after_socializing, "No"), 
-  
-  Drained_after_socializing = factor(Drained_after_socializing, levels = c("No", "Yes")) )  
-
-
-
-sum(is.na(clean_test_data))
-
-
-
 train_data <- read_csv("Data/train.csv")  
+
 
 glimpse(train_data)  
 
@@ -68,8 +36,7 @@ clean_train_data <- train_data %>% mutate(
 
 sum(is.na(clean_train_data))
 
-
-# 2. Set Seed and Split Training Data for Validation 
+#Modeling 
 
 set.seed(42) 
 
@@ -81,7 +48,6 @@ valid_set <- testing(data_split)
 
 
 
-# 3. Define Recipe & Model 
 
 personality_recipe <- recipe(Personality ~ Time_spent_Alone + Social_event_attendance +  
                                
@@ -103,7 +69,6 @@ lr_model <- logistic_reg() %>%
 
 
 
-# 4. Workflow & Fitting 
 
 personality_wf <- workflow() %>%  
   
@@ -117,7 +82,6 @@ fitted_model <- fit(personality_wf, data = train_set)
 
 
 
-# 5. Evaluate on Validation Set 
 
 predictions <- predict(fitted_model, new_data = valid_set, type = "class") 
 
